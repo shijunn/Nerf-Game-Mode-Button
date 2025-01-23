@@ -3,7 +3,7 @@
 
 This program is developed for game mode buttons used in NerfSG games.
 
-Designed for ESP32.
+Designed for ESP32 C6.
 
 Game modes:
 
@@ -15,7 +15,12 @@ Game modes:
 
 ## Features
 
+- Adjustable game duration and countdown time
+- Settings are saved for user convenience
+- Teams are assigned using one button
+- Audio announcements using mp3 library from https://github.com/bluejunimo/YX5300_ESP32
+
 Work in progress:
 
-- Communication between boards using ESP-NOW
-- Last used duration setting for game modes
+- Chess clock game mode
+- Issue with mp3 files playing in the wrong order
