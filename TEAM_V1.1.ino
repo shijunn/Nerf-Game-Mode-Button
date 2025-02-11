@@ -7,6 +7,8 @@
 #include <Preferences.h>
 #include <esp_now.h>  // https://randomnerdtutorials.com/esp-now-one-to-many-esp32-esp8266/
 #include <WiFi.h>
+#include <esp_wifi.h>
+#include <string.h>
 
 #define NUM_PIXELS 32
 #define SCREEN_WIDTH 128
@@ -53,6 +55,15 @@ bool firstconfirm = true;
 Preferences preferences;
 
 uint8_t broadcastAddressHost[] = {0xe4, 0xb3, 0x23, 0x94, 0x3b, 0x28};
+// FOR SENDING BUTTON FROM TEAM BOARD TO TEAM BOARD
+
+// NEED TO CHECK THE ADDRESS ON THIS BOARD AND IF THIS BOARD ADDRESS == ONE OF THE ADDRESSES, SET SENDING ADDRESSS TO OTHER TEAM ADDRESS
+
+// opp_address assigned - done
+
+// check if button status send successfully - have not checked
+
+
 esp_now_peer_info_t peerInfo;
 //https://randomnerdtutorials.com/esp-now-many-to-one-esp32/#more-96216
 unsigned long startGameTime;
@@ -63,14 +74,15 @@ unsigned long timesetting = 0;
 unsigned long longpress = 0;
 unsigned long timesent = 0;
 
+
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);  //declaration for SSD1306 display connected using I2C
 Adafruit_NeoPixel pixels(NUM_PIXELS, neopixelpin, NEO_GRB + NEO_KHZ800);
 
 // temporarily put here for ease of use
 int score = 0;
 bool endgame = false;
-unsigned long checktime;
-unsigned long newTime;
+// unsigned long checktime;
+// unsigned long newTime;
 unsigned long prevTime;
 unsigned long totalTime;
 
@@ -90,10 +102,9 @@ typedef struct game_struct
   unsigned long countdowntime;
   int id;
   int togglescreen;
-  bool chessbuttonpress1;
-  bool chessbuttonpress2;
   bool middlelongpressed;
   bool goback;
+  bool button;
 } game_struct;
 
 game_struct gamedata;
@@ -101,26 +112,23 @@ game_struct gamedata;
 game_struct incominggamedata; // for team or host board
 
 
-
 // delcaring variables for storing incoming values from other boards
 int incomingmodenum;
 int incomingtogglescreen;
 int lastincomingmodenum = 0;
 bool incomingconfirm = false;
-bool incomingchessbuttonpress1;
-bool incomingchessbuttonpress2;
 unsigned long incominggamemodetime;
 unsigned long incomingcountdowntime;
 bool incomingmiddlelongpressed;
 bool incominggoback;
 
+bool incomingbutton = false;
 
 
-
-void oledDisplayCenter();
-void oledDisplayInt();
-void oledDisplayCountdown();
-void oledDisplayStrInt();
+void oledDisplayCenter(String text);
+void oledDisplayInt(int number);
+void oledDisplayCountdown(int seconds);
+void oledDisplayStrInt(String text, int number);
 void menudisplay();
 void resetvariables();
 void resetscore();
@@ -151,10 +159,10 @@ void setup() {
   // get the status of Trasnmitted packet
   esp_now_register_send_cb(OnDataSent);
   
-  // Register peer
+  // register host as a peer
+  
   peerInfo.channel = 0;  
   peerInfo.encrypt = false;
-  // register host as a peer
   memcpy(peerInfo.peer_addr, broadcastAddressHost, 6);
   if (esp_now_add_peer(&peerInfo) != ESP_OK)
   {
@@ -162,6 +170,7 @@ void setup() {
     return;
   }
 
+  
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
     for (;;)
@@ -191,13 +200,12 @@ void setup() {
   gamedata.testtime = 0;
   gamedata.recordedTime = 0;
   gamedata.id = 1; //default blue team
+  gamedata.button = false;
 
   // id = 1 blue team
   // id = 2 red team
   sendscoretimeendgame();
   esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
-
-  
 }
 
 void loop() {
@@ -242,11 +250,11 @@ void loop() {
         //while (incomingconfirm == true){
           if (incomingtogglescreen == 0)
           {
-            oledDisplayStrInt("Mins: ", (incominggamemodetime / 60000));
+            oledDisplayStrInt("Mins: ", incominggamemodetime / 60000);
           }
           else if (incomingtogglescreen == 1)
           {
-            oledDisplayStrInt("Sec: ", (incomingcountdowntime / 1000));
+            oledDisplayStrInt("Sec: ", incomingcountdowntime / 1000);
           }
         //}
         break;

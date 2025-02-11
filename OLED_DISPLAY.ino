@@ -31,7 +31,6 @@ void oledDisplayCountdown(int seconds)
     pixels.clear();
     pixels.show();
     oledDisplayInt(seconds);
-    showwhite();
     delay(1000); // 1 second pause
   }
   oledDisplayCenter("START!");

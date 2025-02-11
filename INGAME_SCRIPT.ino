@@ -207,7 +207,7 @@ void clickerDomination()
   // send scores to host
 }
 
-
+/*
 void chessClock() // press and let go, go down from time limit, first team to reach 0 wins
 {  // assume this board is blue team
   #ifdef devdebug
@@ -221,17 +221,18 @@ void chessClock() // press and let go, go down from time limit, first team to re
   oledDisplayCountdown(incomingcountdowntime);
   colorWipe(pixels.Color(200, 200, 150), 5);
   bool opponent;
-  if (gamedata.id == 1)
-  {
-    opponent = incomingchessbuttonpress2;
-  }
-  else if (gamedata.id == 2)
-  {
-    opponent = incomingchessbuttonpress1;
-  }
 
-  while(endgame) //game ends only when timer on one team reaches 0
+  while(!endgame) //game ends only when timer on one team reaches 0
   {
+    if (gamedata.id == 1)
+    {
+      opponent = incomingchessbuttonpress2;
+    }
+    else if (gamedata.id == 2)
+    {
+      opponent = incomingchessbuttonpress1;
+    }
+
     if (digitalRead(extButton) == LOW && opponent == true)
     { // if this board press and the other team is already scoring
       pressed = true;
@@ -251,7 +252,7 @@ void chessClock() // press and let go, go down from time limit, first team to re
       }
     }
     
-    else if (digitalRead(extButton) == HIGH && opponent == false)
+    else if (digitalRead(extButton) == HIGH && opponent == true)
     {// both teams have not pressed the button, game just started
     // once one side presses the button, the timer should keep going down
       if (pressed == true) // if pressed previously
@@ -261,9 +262,14 @@ void chessClock() // press and let go, go down from time limit, first team to re
         pressed = false; // reset flag
         // start recording on other team board
         prevTime = newTime;
+      
     }
     
-
+    else
+    {
+      pressed = false;
+      storedPrev = false;
+    }
 
     if (pressed) // continue calculating without the button being held down
     { // if blue team pressed
@@ -295,6 +301,84 @@ void chessClock() // press and let go, go down from time limit, first team to re
       sendcooldown();
     }
   }
+  oledDisplayCenter("OVER");
+  delay(2000);
+}
+*/
+
+void chessClock()
+{
+  #ifdef devdebug
+    Serial.println("Starting chess clock");
+  #endif
+
+  gamedata.newTime = incominggamemodetime;
+  gamedata.checktime = incominggamemodetime;
+
+  oledDisplayCountdown(incomingcountdowntime);
+  sendscoretimeendgame();
+  pixels.clear();
+  pixels.show();
+  while (!endgame)
+  {
+    if (digitalRead(extButton) == LOW && !incomingbutton && !pressed)
+    {
+      // start recording
+      gamedata.button = true;
+      startPressTime = millis();
+      pressed = true;
+      sendscoretimeendgame();
+    }
+    else if (digitalRead(extButton) == HIGH && incomingbutton && pressed)
+    {
+      // stop recording
+      if (pressed == true) // if pressed previously
+      {
+        storedPrev = true;
+      }
+      pressed = false; // reset flag
+      // start recording on other team board
+      prevTime = gamedata.newTime;
+      gamedata.button = false;
+      sendscoretimeendgame();
+    }
+
+    // if the button on this board has been pressed already and the other board has not pressed
+    // start recording time on this board and send to host
+    if (pressed) // continue calculating without the button being held down
+    { // if blue team pressed
+    
+      if (storedPrev) // prevTime has been stored before
+      {
+        Serial.println("RECORDING");
+        gamedata.newTime = prevTime - (millis()-startPressTime);
+        #ifdef devdebug
+          Serial.println(gamedata.newTime + String("     if"));
+        #endif
+        // when opponent press button, time recorded here is stored as newTime
+        // newTime is stored into prevTime
+        // when button is pressed again, game continues from time that was stored here
+        gamedata.checktime = incominggamemodetime - gamedata.newTime;
+        sendcooldown();
+      }
+      else{
+        Serial.println("RECORDING");
+        gamedata.newTime = incominggamemodetime - (millis() - startPressTime);
+        #ifdef devdebug
+          Serial.println(gamedata.newTime + String("      else"));
+        #endif
+        sendcooldown();
+        // when button is pressed again, it continues from this number
+        // only goes through this else condition for the first time the button is pressed in the game
+      }
+    }
+    if (gamedata.checktime <= 0 || gamedata.newTime <= 0)
+    {
+      endgame = true;
+      sendscoretimeendgame();
+    }   
+  }
+  
   oledDisplayCenter("OVER");
   delay(2000);
 }

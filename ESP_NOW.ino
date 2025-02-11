@@ -11,7 +11,8 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 }
 
 // callback function that will be executed when data is received
-void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len)
+{
   memcpy(&incominggamedata, incomingData, sizeof(incominggamedata));
   Serial.print("Bytes received: ");
   Serial.println(len);
@@ -24,8 +25,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   incomingconfirm = incominggamedata.confirm;
   incomingcountdowntime = incominggamedata.countdowntime/1000;
   incomingtogglescreen = incominggamedata.togglescreen;
-  incomingchessbuttonpress1 = incominggamedata.chessbuttonpress1;
-  incomingchessbuttonpress2 = incominggamedata.chessbuttonpress2;
   incomingmiddlelongpressed = incominggamedata.middlelongpressed;
   incominggoback = incominggamedata.goback;
+  incomingbutton = incominggamedata.button;
 }
