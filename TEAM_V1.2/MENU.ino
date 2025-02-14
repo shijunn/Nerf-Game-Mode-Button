@@ -1,4 +1,5 @@
-void updatedisplay() {
+void updatedisplay()
+{
   if (incomingmodenum != lastincomingmodenum || incominggoback)
   {
     colorWipe(pixels.Color(255, 255, 255), 5);

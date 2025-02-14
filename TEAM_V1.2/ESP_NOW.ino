@@ -1,5 +1,6 @@
 // callback when data is sent
-void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
+{
   char macStr[18];
   Serial.print("Packet to: ");
   // copies the sender mac address to a string
@@ -11,7 +12,7 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 }
 
 // callback function that will be executed when data is received
-void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len)
+void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 {
   memcpy(&incominggamedata, incomingData, sizeof(incominggamedata));
   Serial.print("Bytes received: ");

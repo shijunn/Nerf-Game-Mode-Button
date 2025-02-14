@@ -99,7 +99,8 @@ void kingOfTheHill()  // press and hold, start from 0, 5 mins
   gamedata.testtime = 0;
   oledDisplayCountdown(incomingcountdowntime);
   startGameTime = millis();
-  while ((millis() - startGameTime < incominggamemodetime) && !endgame) {
+  while ((millis() - startGameTime < incominggamemodetime) && !gamedata.endgame)
+  {
     //colorWipe(pixels.Color(255, 128, 0), 5);
     // add recorded time with previous time
     if (digitalRead(extButton) == LOW && !startedrecording)  // while pressed
@@ -319,7 +320,7 @@ void chessClock()
   sendscoretimeendgame();
   pixels.clear();
   pixels.show();
-  while (!endgame)
+  while (!gamedata.endgame)
   {
     if (digitalRead(extButton) == LOW && !incomingbutton && !pressed)
     {
@@ -361,7 +362,8 @@ void chessClock()
         gamedata.checktime = incominggamemodetime - gamedata.newTime;
         sendcooldown();
       }
-      else{
+      else
+      {
         Serial.println("RECORDING");
         gamedata.newTime = incominggamemodetime - (millis() - startPressTime);
         #ifdef devdebug
@@ -374,7 +376,7 @@ void chessClock()
     }
     if (gamedata.checktime <= 0 || gamedata.newTime <= 0)
     {
-      endgame = true;
+      gamedata.endgame = true;
       sendscoretimeendgame();
     }   
   }
